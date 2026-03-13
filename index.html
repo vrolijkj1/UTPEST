@@ -240,12 +240,12 @@ function sel(id){return document.getElementById(id)}
 var S={
   tab:"estimator",showSettings:false,
   billHrs:1000,labMark:52,eqMark:0,labDisp:"distribute",
-  custName:"",custAddr:"",jobDate:new Date().toISOString().split("T")[0],
+  custName:"",custAddr:"",jobDate:new Date().toISOString().split("T")[0],isMember:false,memberDisc:5,
   overhead:JSON.parse(JSON.stringify(INIT_OVERHEAD)),
   catalog:INIT_CATALOG.map(function(s){return Object.assign({},s,{id:uid()})}),
   selSvc:[],passCosts:[],
   search:"",lvlFilt:"All",
-  showQA:false,showPA:false,showOHAdd:false,showCatAdd:false,
+  showQA:false,showPA:false,showOHAdd:false,showCatAdd:false,settingsAuth:false,
   saveStatus:""
 };
 
@@ -261,6 +261,7 @@ function loadConfig(){
       if(cfg.labMark!==undefined)S.labMark=cfg.labMark;
       if(cfg.eqMark!==undefined)S.eqMark=cfg.eqMark;
       if(cfg.labDisp)S.labDisp=cfg.labDisp;
+      if(cfg.memberDisc!==undefined)S.memberDisc=cfg.memberDisc;
     }
   }catch(e){}
 }
@@ -272,7 +273,7 @@ function saveConfig(){
     try{
       localStorage.setItem("utp-config",JSON.stringify({
         overhead:S.overhead,catalog:S.catalog,billHrs:S.billHrs,
-        labMark:S.labMark,eqMark:S.eqMark,labDisp:S.labDisp,savedAt:new Date().toISOString()
+        labMark:S.labMark,eqMark:S.eqMark,labDisp:S.labDisp,memberDisc:S.memberDisc,savedAt:new Date().toISOString()
       }));
       S.saveStatus="saved";render();
       setTimeout(function(){S.saveStatus="";render()},2000);
@@ -281,7 +282,7 @@ function saveConfig(){
 }
 
 function exportConfig(){
-  var cfg={version:"3.1",exportedAt:new Date().toISOString(),overhead:S.overhead,catalog:S.catalog,billHrs:S.billHrs,labMark:S.labMark,eqMark:S.eqMark,labDisp:S.labDisp};
+  var cfg={version:"3.1",exportedAt:new Date().toISOString(),overhead:S.overhead,catalog:S.catalog,billHrs:S.billHrs,labMark:S.labMark,eqMark:S.eqMark,labDisp:S.labDisp,memberDisc:S.memberDisc};
   var json=JSON.stringify(cfg,null,2);var fname="UpToPar_Config_"+new Date().toISOString().split("T")[0]+".json";
   if(navigator.share){try{var file=new File([json],fname,{type:"application/json"});if(!navigator.canShare||navigator.canShare({files:[file]})){navigator.share({title:"Up to Par Config",files:[file]}).catch(function(){});return}}catch(e){}}
   var b=new Blob([json],{type:"application/json"});var u=URL.createObjectURL(b);var a=document.createElement("a");a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
@@ -297,6 +298,7 @@ function importConfig(file){
       if(cfg.labMark!==undefined)S.labMark=cfg.labMark;
       if(cfg.eqMark!==undefined)S.eqMark=cfg.eqMark;
       if(cfg.labDisp)S.labDisp=cfg.labDisp;
+      if(cfg.memberDisc!==undefined)S.memberDisc=cfg.memberDisc;
       saveConfig();render();
     }catch(err){S.saveStatus="error";render()}
   };r.readAsText(file);
@@ -305,7 +307,7 @@ function resetDefaults(){
   if(!confirm("Reset all settings, overhead, and catalog to factory defaults? This cannot be undone."))return;
   S.overhead=JSON.parse(JSON.stringify(INIT_OVERHEAD));
   S.catalog=INIT_CATALOG.map(function(s){return Object.assign({},s,{id:uid()})});
-  S.billHrs=1000;S.labMark=52;S.eqMark=0;S.labDisp="distribute";
+  S.billHrs=1000;S.labMark=52;S.eqMark=0;S.labDisp="distribute";S.memberDisc=5;S.isMember=false;
   try{localStorage.removeItem("utp-config")}catch(e){}
   render();
 }
@@ -330,7 +332,8 @@ function calcTots(){
   var lO=p.reduce(function(s,x){return s+x.ls},0);
   var eO=p.reduce(function(s,x){return s+x.ep},0);
   var pT=S.passCosts.reduce(function(s,x){return s+(parseFloat(x.cost)||0)},0);
-  return{lO:lO,eO:eO,pT:pT,gT:lO+eO+pT};
+  var sub=lO+eO+pT;var disc=S.isMember?(sub*S.memberDisc/100):0;
+  return{lO:lO,eO:eO,pT:pT,sub:sub,disc:disc,gT:sub-disc};
 }
 function calcCostBasis(){
   var p=calcPriced(),b=calcBurden(),t=calcTots();
@@ -370,13 +373,17 @@ function exportEstimate(){
   '<div style="border-bottom:2px solid #E8272C;padding-bottom:18px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:26px;font-weight:800;color:#1a1a1a;letter-spacing:1px">UP TO PAR</div><div style="font-size:11px;letter-spacing:3px"><span style="color:#E8272C">HEATING</span><span style="color:#999"> &amp; </span><span style="color:#4DA6E8">AIR</span></div></div><div style="text-align:right;font-size:12px;color:#555"><div style="font-weight:700;color:#1a1a1a;font-size:15px">Service Estimate</div><div>'+esc(S.jobDate)+'</div></div></div>'+
   cust+
   '<table style="width:100%;border-collapse:collapse;margin-bottom:18px"><thead><tr style="border-bottom:2px solid #4DA6E8"><th style="text-align:left;padding:7px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1a1a1a">Service</th><th style="text-align:right;padding:7px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1a1a1a">Price</th></tr></thead><tbody>'+rows+passRows+'</tbody></table>'+
+  (S.isMember&&t.disc>0?'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px;margin-bottom:4px"><span style="font-size:13px;color:#27ae60;font-style:italic">Discount</span><span style="font-size:13px;font-weight:600;color:#27ae60">-'+fmt(t.disc)+'</span></div>':'')+
   '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#1a1a1a;border-radius:7px"><span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:1px">TOTAL</span><span style="font-size:22px;font-weight:700;color:#4DA6E8">'+fmt(t.gT)+'</span></div>'+
   '<div style="margin-top:20px;text-align:center;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:12px">Up to Par Heating &amp; Air · Greater Cincinnati, Northern Kentucky &amp; Southeast Indiana</div></body></html>';
-  var fname="UpToPar_Estimate"+(S.custName?"_"+S.custName.replace(/\s+/g,"_"):"")+(S.jobDate?"_"+S.jobDate:"")+".html";
+  var fname=(S.custName||S.jobDate)?(S.custName?S.custName.replace(/\s+/g,"_"):"")+((S.custName&&S.jobDate)?"_":"")+(S.jobDate||"")+".html":"UpToPar_Estimate.html";
   if(navigator.share){try{var file=new File([html],fname,{type:"text/html"});if(!navigator.canShare||navigator.canShare({files:[file]})){navigator.share({title:"Estimate"+(S.custName?" — "+S.custName:""),files:[file]}).catch(function(){});return}}catch(e){}}
   var w=window.open("","_blank");if(w){w.document.write(html);w.document.close();return}
   var b=new Blob([html],{type:"text/html"});var u=URL.createObjectURL(b);var a=document.createElement("a");a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
 }
+
+/* ═══ SETTINGS AUTH ═══ */
+function authSettings(){var u=sel("auth-user"),p=sel("auth-pass"),e=sel("auth-err");if(u.value==="UTPAdmin"&&p.value==="Ricky Bobby!"){S.settingsAuth=true;render()}else{e.style.display="block";p.value="";p.focus()}}
 
 /* ═══ RENDER ═══ */
 function render(){
@@ -454,6 +461,7 @@ function render(){
         h+='<div style="background:#0a0a0a;border-radius:5px;padding:5px 8px"><div style="font-size:9px;color:#555;text-transform:uppercase">'+m.l+'</div><div style="font-size:13px;font-weight:700">'+m.v+'</div></div>';
       });
       h+='</div>';
+      if(S.isMember&&tots.disc>0){h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 11px;margin-top:4px"><span style="font-size:11px;color:#2ECC71;font-style:italic">Discount ('+S.memberDisc+'%)</span><span style="font-size:11px;font-weight:600;color:#2ECC71">-'+fmt(tots.disc)+'</span></div>'}
       h+='<div class="total-bar"><span class="osw" style="font-size:14px">Total Job Price</span><span class="osw" style="font-size:20px;font-weight:700;color:#4DA6E8">'+fmt(tots.gT)+'</span></div>';
       h+='<div style="text-align:center;margin-top:4px"><span style="font-size:10px;color:#F5A623;font-weight:600">Margin: '+(tots.gT>0?fmtPct((tots.gT-costBasis)/tots.gT):"0.0%")+'</span></div>';
       h+='</div>';
@@ -478,6 +486,7 @@ function render(){
       S.passCosts.forEach(function(p){h+='<tr><td>'+esc(p.desc)+'</td><td style="text-align:right;font-weight:600">'+fmt(p.cost)+'</td></tr>'});
     }
     h+='</tbody></table>';
+    if(S.isMember&&tots.disc>0){h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px;margin-bottom:4px"><span style="font-size:13px;color:#27ae60;font-style:italic">Discount</span><span style="font-size:13px;font-weight:600;color:#27ae60">-'+fmt(tots.disc)+'</span></div>'}
     h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#1a1a1a;border-radius:7px"><span style="font-family:Oswald,sans-serif;font-size:15px;font-weight:700;color:#fff;letter-spacing:1px">TOTAL</span><span style="font-family:Oswald,sans-serif;font-size:22px;font-weight:700;color:#4DA6E8">'+fmt(tots.gT)+'</span></div>';
     h+='<div style="margin-top:20px;text-align:center;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:12px">Up to Par Heating &amp; Air · Greater Cincinnati, Northern Kentucky &amp; Southeast Indiana</div>';
     h+='</div></div>';
@@ -503,8 +512,9 @@ function render(){
   /* ═══ SETTINGS MODAL ═══ */
   if(S.showSettings){
     var ohByCat={};S.overhead.forEach(function(o){if(!ohByCat[o.cat])ohByCat[o.cat]=[];ohByCat[o.cat].push(o)});
-    h+='<div class="modal-bg" onclick="S.showSettings=false;render()"><div class="modal" onclick="event.stopPropagation()">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h2 class="osw" style="font-size:20px;font-weight:700">Settings</h2><button class="icon-btn" style="color:#888" onclick="S.showSettings=false;render()">'+ico("M18 6L6 18M6 6l12 12",18)+'</button></div>';
+    h+='<div class="modal-bg" onclick="S.showSettings=false;S.settingsAuth=false;render()"><div class="modal" style="position:relative" onclick="event.stopPropagation()">';
+    if(!S.settingsAuth)h+='<div style="filter:blur(8px);pointer-events:none;max-height:60vh;overflow:hidden">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h2 class="osw" style="font-size:20px;font-weight:700">Settings</h2><button class="icon-btn" style="color:#888" onclick="S.showSettings=false;S.settingsAuth=false;render()">'+ico("M18 6L6 18M6 6l12 12",18)+'</button></div>';
 
     h+='<div class="sect">Rate Assumptions</div>';
     h+='<div class="grid3" style="margin-bottom:10px"><div><label style="font-size:10px;color:#888;display:block;margin-bottom:3px">Goal Hrs/Yr</label><input class="inp" type="number" inputmode="decimal" value="'+S.billHrs+'" onchange="S.billHrs=parseFloat(this.value)||0;saveConfig();render()"/></div><div><label style="font-size:10px;color:#888;display:block;margin-bottom:3px">Labor Markup %</label><input class="inp" type="number" inputmode="decimal" value="'+S.labMark+'" onchange="S.labMark=parseFloat(this.value)||0;saveConfig();render()"/></div><div><label style="font-size:10px;color:#888;display:block;margin-bottom:3px">Equip Markup %</label><input class="inp" type="number" inputmode="decimal" value="'+S.eqMark+'" onchange="S.eqMark=parseFloat(this.value)||0;saveConfig();render()"/></div></div>';
@@ -525,6 +535,9 @@ function render(){
     h+='<div class="sect">Customer Info</div>';
     h+='<div class="grid2" style="margin-bottom:4px"><div><label style="font-size:10px;color:#888">Name</label><input class="inp" value="'+esc(S.custName)+'" oninput="S.custName=this.value" placeholder="John Smith"/></div><div><label style="font-size:10px;color:#888">Date</label><input class="inp" type="date" value="'+S.jobDate+'" onchange="S.jobDate=this.value"/></div></div>';
     h+='<div style="margin-bottom:16px"><label style="font-size:10px;color:#888">Address</label><input class="inp" value="'+esc(S.custAddr)+'" oninput="S.custAddr=this.value" placeholder="123 Main St"/></div>';
+
+    h+='<div class="sect">Membership</div>';
+    h+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="display:flex;align-items:center;gap:8px;flex:1"><button style="width:44px;height:24px;border-radius:12px;border:none;cursor:pointer;background:'+(S.isMember?'#4DA6E8':'#333')+';position:relative" onclick="S.isMember=!S.isMember;render()"><div style="width:20px;height:20px;border-radius:10px;background:#fff;position:absolute;top:2px;'+(S.isMember?'right:2px':'left:2px')+'"></div></button><span style="font-size:12px;color:'+(S.isMember?'#4DA6E8':'#555')+'">Customer is a member</span></div><div style="display:flex;align-items:center;gap:4px"><input class="inp" type="number" inputmode="decimal" value="'+S.memberDisc+'" style="width:55px;text-align:right" onchange="S.memberDisc=parseFloat(this.value)||0;saveConfig();render()"/><span style="font-size:11px;color:#888">% off</span></div></div>';
 
     h+='<div class="sect">Overhead Cost Manager</div>';
     h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:13px;color:#ccc;font-weight:600">Annual Total: <span style="color:#F5A623">'+fmt(totalOH)+'</span></span><button class="btn btn-blue" onclick="S.showOHAdd=!S.showOHAdd;render()">+ Add Item</button></div>';
@@ -553,6 +566,7 @@ function render(){
     h+='<button class="btn btn-red-ghost" onclick="resetDefaults()">'+ico("M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6",12)+' Reset</button>';
     h+='</div></div>';
 
+    if(!S.settingsAuth){h+='</div><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,10,10,0.85);border-radius:14px"><div style="text-align:center;width:280px"><div style="color:#E8272C;margin-bottom:8px">'+ico("M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2zM7 11V7a5 5 0 0110 0v4",24)+'</div><div style="font-family:Oswald,sans-serif;font-size:20px;font-weight:700;color:#fff;margin-bottom:4px">Admin Access</div><div style="font-size:11px;color:#555;margin-bottom:16px">Enter credentials to continue</div><input class="inp" placeholder="Username" id="auth-user" style="margin-bottom:8px;text-align:center" onkeydown="if(event.key===\'Enter\')sel(\'auth-pass\').focus()"/><input class="inp" type="password" placeholder="Password" id="auth-pass" style="margin-bottom:12px;text-align:center" onkeydown="if(event.key===\'Enter\')authSettings()"/><div id="auth-err" style="font-size:11px;color:#E8272C;margin-bottom:8px;display:none">Invalid credentials</div><button class="btn btn-blue" style="width:100%" onclick="authSettings()">Unlock Settings</button></div></div>'}
     h+='</div></div>';
   }
 
