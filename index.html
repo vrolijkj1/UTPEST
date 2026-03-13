@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Up to Par">
+<meta name="theme-color" content="#0a0a0a">
+<title>Up to Par — Price Estimator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#0a0a0a;font-family:'Source Sans Pro','Segoe UI',Helvetica,Arial,sans-serif;color:#fff;overflow-x:hidden;-webkit-text-size-adjust:100%}
+@font-face{font-family:'Oswald';font-style:normal;font-weight:400 800;font-display:swap;src:url(https://fonts.gstatic.com/s/oswald/v53/TK3_WkUHHAIjg75cFRf3bXL8LICs169vsUZiZQ.woff2) format('woff2')}
+@font-face{font-family:'Source Sans Pro';font-style:normal;font-weight:400 700;font-display:swap;src:url(https://fonts.gstatic.com/s/sourcesanspro/v22/6xK3dSBYKcSV-LCoeQqfX1RYOo3qOK7l.woff2) format('woff2')}
+input,select,textarea,button{font-family:inherit;font-size:inherit}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#0a0a0a}::-webkit-scrollbar-thumb{background:rgba(77,166,232,0.25);border-radius:3px}
+::placeholder{color:#444}
+select option{background:#131313;color:#fff}
+.hdr{background:linear-gradient(135deg,#111,#1a1a1a);border-bottom:2px solid #E8272C;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.card{background:#131313;border:1px solid #252525;border-radius:10px;padding:14px;margin-bottom:12px}
+.inp{width:100%;padding:8px 10px;background:#131313;border:1px solid #252525;border-radius:5px;color:#fff;font-size:13px;outline:none}
+.inp:focus{border-color:#4DA6E8}
+.btn{border:none;border-radius:5px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Source Sans Pro',sans-serif;display:inline-flex;align-items:center;gap:5px}
+.btn-blue{background:#4DA6E8;color:#fff}
+.btn-gold{background:#F5A623;color:#000}
+.btn-ghost{background:transparent;color:#888;text-decoration:underline;padding:7px 6px}
+.btn-red-ghost{background:transparent;color:#883333}
+.sect{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#E8272C;font-weight:700;margin-bottom:8px}
+.osw{font-family:'Oswald',sans-serif}
+.lvl{font-size:8px;font-weight:700;padding:2px 5px;border-radius:3px;color:#fff;text-align:center;min-width:36px;display:inline-block}
+.cat-badge{font-size:8px;font-weight:700;padding:1px 6px;border-radius:3px;color:#fff;display:inline-block}
+.svc-btn{display:flex;align-items:center;gap:7px;width:100%;padding:6px 9px;background:#0a0a0a;border:1px solid #252525;border-radius:5px;cursor:pointer;text-align:left;color:#fff;font-family:'Source Sans Pro',sans-serif}
+.svc-btn:hover,.svc-btn:active{border-color:#4DA6E8}
+.sel-row{display:flex;align-items:center;gap:5px;background:#0a0a0a;border-radius:4px;padding:4px 7px;margin-bottom:2px}
+.mini-inp{padding:2px 5px;background:#1a1a1a;border:1px solid #252525;border-radius:3px;color:#ccc;font-size:10px;text-align:right;outline:none;width:40px}
+.mini-inp-gold{padding:2px 5px;background:#1a1a1a;border:1px solid #252525;border-radius:3px;color:#F5A623;font-size:10px;text-align:right;outline:none;width:55px}
+.icon-btn{background:none;border:none;cursor:pointer;padding:2px;display:inline-flex;align-items:center}
+.tab-btn{padding:7px 12px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid #252525;background:transparent;color:#888;font-family:'Source Sans Pro',sans-serif}
+.tab-btn.active{border-color:#4DA6E8;background:rgba(77,166,232,0.09);color:#fff}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:30px 12px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal{background:#1a1a1a;border:1px solid #252525;border-radius:14px;padding:20px;max-width:540px;width:100%}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.main{max-width:1080px;margin:0 auto;padding:14px 10px 60px}
+.est-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+@media(max-width:768px){.est-grid{display:flex;flex-direction:column}.grid3{grid-template-columns:1fr}}
+.rate-box{background:#0a0a0a;border-radius:5px;padding:7px 9px;border-left:3px solid #4DA6E8}
+.rate-box .lbl{font-size:9px;color:#888;text-transform:uppercase}
+.rate-box .val{font-size:14px;font-weight:700;color:#fff;margin-top:1px}
+.summary-box{background:rgba(77,166,232,0.04);border:1px solid rgba(77,166,232,0.25);border-radius:10px;padding:14px}
+.total-bar{display:flex;justify-content:space-between;align-items:center;padding:9px 11px;background:rgba(77,166,232,0.07);border-radius:7px;border:1px solid rgba(77,166,232,0.19);margin-top:8px}
+.save-dot{width:5px;height:5px;border-radius:3px;display:inline-block;margin-right:3px}
+.oh-row{display:flex;align-items:center;gap:5px;padding:3px 6px;background:#0a0a0a;border-radius:4px;margin-bottom:2px}
+/* Print styles for customer view export */
+.cv-wrap{background:#fff;border-radius:10px;padding:28px 24px;color:#1a1a1a;font-family:'Source Sans Pro',sans-serif;box-shadow:0 4px 30px rgba(0,0,0,0.5)}
+.cv-wrap table{width:100%;border-collapse:collapse;margin-bottom:18px}
+.cv-wrap th{text-align:left;padding:7px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1a1a1a}
+.cv-wrap td{padding:9px 0;font-size:13px;border-bottom:1px solid #eee}
+@supports(padding:env(safe-area-inset-top)){.hdr{padding-top:max(8px,env(safe-area-inset-top))}.main{padding-bottom:max(60px,calc(60px + env(safe-area-inset-bottom)))}}
+@media(max-width:768px){.inp,.mini-inp,.mini-inp-gold,select{font-size:16px!important}.svc-btn{min-height:44px}.sel-row{min-height:44px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+/* ═══ DATA ═══ */
+var INIT_OVERHEAD=[
+{id:"o1",name:"Tyler Salary",annual:70000,cat:"Labor"},
+{id:"o2",name:"Van Payment",annual:7112.52,cat:"Vehicle"},
+{id:"o3",name:"Insurance (Van)",annual:1838.38,cat:"Insurance"},
+{id:"o4",name:"Business Insurance",annual:2232,cat:"Insurance"},
+{id:"o5",name:"Life Insurance",annual:527.16,cat:"Insurance"},
+{id:"o6",name:"BBB",annual:612,cat:"Admin"},
+{id:"o7",name:"LSA",annual:19500,cat:"Marketing"},
+{id:"o8",name:"Real Paige",annual:212,cat:"Software"},
+{id:"o9",name:"Van Taxes",annual:420,cat:"Vehicle"},
+{id:"o10",name:"QuickBooks",annual:483.36,cat:"Software"},
+{id:"o11",name:"Housecall Pro",annual:1440,cat:"Software"},
+{id:"o12",name:"Website/Email/Corp",annual:216,cat:"Software"},
+{id:"o13",name:"Phone",annual:2616,cat:"Admin"},
+{id:"o14",name:"DocuSign",annual:127,cat:"Software"},
+{id:"o15",name:"Truck",annual:6000,cat:"Vehicle"},
+{id:"o16",name:"Truck Taxes",annual:347.46,cat:"Vehicle"},
+{id:"o17",name:"Vehicle Maintenance",annual:8000,cat:"Vehicle"},
+{id:"o18",name:"Ink",annual:72,cat:"Admin"},
+{id:"o19",name:"Book Keeper",annual:1500,cat:"Admin"},
+{id:"o20",name:"Finance (Hearth)",annual:2297,cat:"Admin"},
+{id:"o21",name:"Corp Filings KY",annual:127,cat:"Admin"},
+{id:"o22",name:"Corp Filings OH",annual:150,cat:"Admin"},
+{id:"o23",name:"Marketing",annual:3000,cat:"Marketing"},
+{id:"o24",name:"Eagle Creek",annual:1247.64,cat:"Admin"},
+{id:"o25",name:"Truck Stock",annual:3000,cat:"Vehicle"}
+];
+var INIT_CATALOG=[
+{level:"Service Fee",desc:"SF-25 Trip and Service Fee",code:"SS-DP-25",primary:25},
+{level:"SL01",desc:"Thermostat Battery Replacement",code:"TTH-199-0",primary:25},
+{level:"SL02",desc:"Safety Review / Remove Plugged Filter",code:"TTH-100-15",primary:40},
+{level:"SL02",desc:"UV Bulb Replacement",code:"TTH-104-15",primary:40},
+{level:"SL02",desc:"UVU Bulb (W/Oxy) Replacement",code:"TTH-105-15",primary:40},
+{level:"SL02",desc:"CO Detector Install",code:"TTH-106-15",primary:40},
+{level:"SL02",desc:"High Voltage Wire Repair",code:"TTH-133-15",primary:40},
+{level:"SL02",desc:"Level Unit — Standard",code:"TTH-165.0-15",primary:40},
+{level:"SL02",desc:"Clean Permanent Filter",code:"TTH-101-15",primary:40},
+{level:"SL02",desc:"Humidifier Pad Replacement",code:"TTH-102-15",primary:40},
+{level:"SL02",desc:"Humidifier Inspection",code:"TTH-103-15",primary:40},
+{level:"SL02",desc:"Smoke Detector Installation",code:"TTH-107-15",primary:40},
+{level:"SL03",desc:"Add Refrigerant",code:"TTH-181-20",primary:45},
+{level:"SL03",desc:"Relay Replacement",code:"TTH-141-20",primary:45},
+{level:"SL03",desc:"Igniter Replacement",code:"TTH-147-20",primary:45},
+{level:"SL04",desc:"Electronic Air Cleaner Install (4 Pads)",code:"TTH-109-30",primary:55},
+{level:"SL04",desc:"Humidistat Replacement",code:"TTH-111-30",primary:55},
+{level:"SL04",desc:"Return Grill Replacement",code:"TTH-120-30",primary:55},
+{level:"SL04",desc:"Circuit Breaker Reset",code:"TTH-123-30",primary:55},
+{level:"SL04",desc:"Door Switch Replacement",code:"TTH-124-30",primary:55},
+{level:"SL04",desc:"Ceramic Fuse Link Replacement",code:"TTH-125-30",primary:55},
+{level:"SL04",desc:"Breaker Replacement",code:"TTH-126-30",primary:55},
+{level:"SL04",desc:"Circuit Board Replacement",code:"TTH-127-30",primary:55},
+{level:"SL04",desc:"Defrost Board Replacement",code:"TTH-128-30",primary:55},
+{level:"SL04",desc:"AC Combo Switch Install",code:"TTH-134-30",primary:55},
+{level:"SL04",desc:"Furnace Disconnect Switch",code:"TTH-135-30",primary:55},
+{level:"SL04",desc:"Heater Kit Replacement",code:"TTH-136-30",primary:55},
+{level:"SL04",desc:"Crank Case Heater Replacement",code:"TTH-137-30",primary:55},
+{level:"SL04",desc:"Sequencer Replacement",code:"TTH-138-30",primary:55},
+{level:"SL04",desc:"Contactor Replacement",code:"TTH-139-30",primary:55},
+{level:"SL04",desc:"Transformer Replacement",code:"TTH-140-30",primary:55},
+{level:"SL04",desc:"Relight Pilot",code:"TTH-142-30",primary:55},
+{level:"SL04",desc:"Pressure Switch Hose/Inducer Port",code:"TTH-143-30",primary:55},
+{level:"SL04",desc:"Ignition Component — Clean/Adjust",code:"TTH-144-30",primary:55},
+{level:"SL04",desc:"Pilot Assembly Replacement",code:"TTH-145-30",primary:55},
+{level:"SL04",desc:"Thermocouple Replacement",code:"TTH-146-30",primary:55},
+{level:"SL04",desc:"Roll Out Sensor Replacement",code:"TTH-149-30",primary:55},
+{level:"SL04",desc:"Limit Switch Replacement",code:"TTH-150-30",primary:55},
+{level:"SL04",desc:"Gas Leak Search — Standard",code:"TTH-151.0-30",primary:55},
+{level:"SL04",desc:"Inducer Pressure Switch",code:"TTH-155-30",primary:55},
+{level:"SL04",desc:"Flue Repair",code:"TTH-159-30",primary:55},
+{level:"SL04",desc:"Inducer Draft Motor — Clear Obstruction",code:"TTH-161-30",primary:55},
+{level:"SL04",desc:"Capacitor Replacement",code:"TTH-166-30",primary:55},
+{level:"SL04",desc:"Compressor Hard Start Kit",code:"TTH-167-30",primary:55},
+{level:"SL04",desc:"Zone Damper Motor Replacement",code:"TTH-174-30",primary:55},
+{level:"SL04",desc:"Line Set Insulation Replacement",code:"TTH-176-30",primary:55},
+{level:"SL04",desc:"Acid Test on Refrigerant",code:"TTH-177-30",primary:55},
+{level:"SL04",desc:"Recover Refrigerant",code:"TTH-178-30",primary:55},
+{level:"SL04",desc:"Compressor Sound Blanket",code:"TTH-179-30",primary:55},
+{level:"SL04",desc:"Frost/Freeze Low Ambient Kit",code:"TTH-183-30",primary:55},
+{level:"SL04",desc:"Schrader Valve Core Replacement",code:"TTH-185-30",primary:55},
+{level:"SL04",desc:"Reset or Program Thermostat",code:"TTH-198-30",primary:55},
+{level:"SL04",desc:"Thermostat Installation",code:"TTH-200-30",primary:55},
+{level:"SL04",desc:"Drain Cleaning",code:"TTH-204-30",primary:55},
+{level:"SL04",desc:"Flame Sensor Replacement",code:"TTH-206-30",primary:55},
+{level:"SL05",desc:"Electrical Whip Installation",code:"TTH-130-45",primary:70},
+{level:"SL05",desc:"Collector Box Replacement",code:"TTH-156-45",primary:70},
+{level:"SL05",desc:"Burner Assembly — Clean & Align",code:"TTH-157-45",primary:70},
+{level:"SL05",desc:"Condenser Fan Blade (No Motor)",code:"TTH-172-45",primary:70},
+{level:"SL05",desc:"De-Ice Coil",code:"TTH-175-45",primary:70},
+{level:"SL05",desc:"Refrigerant Leak — Single Component",code:"TTH-182-45",primary:70},
+{level:"SL05",desc:"Smart Thermostat Installation",code:"TTH-201-45",primary:70},
+{level:"SL05",desc:"Condensate Pump — Replace",code:"TTH-202-45",primary:70},
+{level:"SL05",desc:"Float Switch — Emergency Pan",code:"TTH-207-45",primary:70},
+{level:"SL05",desc:"Float Switch — Inline",code:"TTH-208-45",primary:70},
+{level:"SL05",desc:"Blower Module Replacement",code:"TTH-209-45",primary:70},
+{level:"SL06",desc:"Humidifier — Steam Cartridge",code:"TTH-110-60",primary:85},
+{level:"SL06",desc:"Steam Humidifier Cleaning",code:"TTH-116-60",primary:85},
+{level:"SL06",desc:"Supply Duct Branch — Standard",code:"TTH-117-60",primary:85},
+{level:"SL06",desc:"Flex Return Duct (Up To 20')",code:"TTH-119.0-60",primary:85},
+{level:"SL06",desc:"240V Disconnect Replacement",code:"TTH-129-60",primary:85},
+{level:"SL06",desc:"Low Voltage Wire — Standard",code:"TTH-131.0-60",primary:85},
+{level:"SL06",desc:"Gas Line Repair — Standard",code:"TTH-152.0-60",primary:85},
+{level:"SL06",desc:"Gas Valve Replacement",code:"TTH-153-60",primary:85},
+{level:"SL06",desc:"Burner Replacement",code:"TTH-158-60",primary:85},
+{level:"SL06",desc:"Inducer Draft Motor Replacement",code:"TTH-162-60",primary:85},
+{level:"SL06",desc:"Blower Wheel Replacement",code:"TTH-169-60",primary:85},
+{level:"SL06",desc:"Blower Wheel Pull & Clean",code:"TTH-171-60",primary:85},
+{level:"SL06",desc:"Condenser Motor Replacement",code:"TTH-173-60",primary:85},
+{level:"SL06",desc:"Stationary Coil Cleaning",code:"TTH-180-60",primary:85},
+{level:"SL06",desc:"Drain Line Repair/Rebuild",code:"TTH-205-60",primary:85},
+{level:"SL07",desc:"Low Voltage Fuse Replacement",code:"TTH-122-75",primary:100},
+{level:"SL08",desc:"UVC Light Installation",code:"TTH-112-90",primary:115},
+{level:"SL08",desc:"UVV With Oxy Installation",code:"TTH-113-90",primary:115},
+{level:"SL08",desc:"Oxidation Upgrade to UV Ballast",code:"TTH-114-90",primary:115},
+{level:"SL08",desc:"Dual Remote UV Installation",code:"TTH-115-90",primary:115},
+{level:"SL08",desc:"Thermostat Wire — Standard",code:"TTH-132.0-90",primary:115},
+{level:"SL08",desc:"Blower Motor Replacement",code:"TTH-168-90",primary:115},
+{level:"SL08",desc:"Blower Motor Mount Bracket",code:"TTH-170-90",primary:115},
+{level:"SL08",desc:"Condensate Pump — New Install",code:"TTH-203-90",primary:115},
+{level:"SL09",desc:"Low Voltage Wire — Major",code:"TTH-131.1-120",primary:145},
+{level:"SL09",desc:"Refrigerant Circuit Cleanup + Acid",code:"TTH-189-120",primary:145},
+{level:"SL10",desc:"Horizontal Flue Powervent",code:"TTH-210-135",primary:160},
+{level:"SL10",desc:"Zone Bypass Damper Replacement",code:"TTH-211-135",primary:160},
+{level:"SL10",desc:"Zone Control Board Replacement",code:"TTH-212-135",primary:160},
+{level:"SL11",desc:"Gas Leak Search — Major",code:"TTH-151.1-150",primary:175},
+{level:"SL11",desc:"Flue Replacement",code:"TTH-160-150",primary:175},
+{level:"SL12",desc:"Supply Duct Branch — Major",code:"TTH-118.1-180",primary:205},
+{level:"SL12",desc:"Flex Return Duct (>20') — Major",code:"TTH-119.1-180",primary:205},
+{level:"SL12",desc:"Thermostat Wire — Major",code:"TTH-132.1-180",primary:205},
+{level:"SL12",desc:"Gas Line Repair — Major",code:"TTH-152.1-180",primary:205},
+{level:"SL12",desc:"Power Vent Motor Kit",code:"TTH-154-180",primary:205},
+{level:"SL12",desc:"Heat Exchanger Replacement",code:"TTH-164-180",primary:205},
+{level:"SL12",desc:"Level Unit — Major",code:"TTH-165.1-180",primary:205},
+{level:"SL12",desc:"Refrigerant Leak — Isolation",code:"TTH-187-180",primary:205},
+{level:"SL12",desc:"Line Set Repair",code:"TTH-188-180",primary:205},
+{level:"SL12",desc:"Metering Device Replacement",code:"TTH-191-180",primary:205},
+{level:"SL12",desc:"Filter Drier Replacement",code:"TTH-192-180",primary:205},
+{level:"SL12",desc:"Heat Pump Charge Compensator",code:"TTH-213-180",primary:205},
+{level:"SL13",desc:"Condenser High/Low Pressure Switch",code:"TTH-184-240",primary:265},
+{level:"SL13",desc:"Indoor Coil Pull & Clean",code:"TTH-186-240",primary:265},
+{level:"SL13",desc:"Service Valve Replacement",code:"TTH-190-240",primary:265},
+{level:"SL13",desc:"Reversing Valve Replacement",code:"TTH-193-240",primary:265},
+{level:"SL13",desc:"Accumulator Replacement",code:"TTH-194-240",primary:265},
+{level:"SL13",desc:"Compressor Replacement",code:"TTH-195-240",primary:265},
+{level:"SL13",desc:"Indoor Coil Replacement",code:"TTH-196-240",primary:265},
+{level:"SL13",desc:"Outdoor Coil Replacement",code:"TTH-197-240",primary:265}
+];
+var CATS=["Labor","Vehicle","Insurance","Software","Marketing","Admin","Other"];
+var SL_LIST=["Service Fee","SL01","SL02","SL03","SL04","SL05","SL06","SL07","SL08","SL09","SL10","SL11","SL12","SL13"];
+
+/* ═══ UTILS ═══ */
+function fmt(n){return "$"+Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",")}
+function fmtPct(n){return(n*100).toFixed(1)+"%"}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function levelColor(l){
+  if(l==="Custom")return"#F5A623";
+  if(["Service Fee","SL01","SL02"].indexOf(l)>=0)return"#4DA6E8";
+  if(["SL03","SL04","SL05"].indexOf(l)>=0)return"#F5A623";
+  if(["SL06","SL07","SL08"].indexOf(l)>=0)return"#E8522C";
+  return"#E8272C";
+}
+function catColor(c){
+  var m={Labor:"#4DA6E8",Vehicle:"#E8522C",Insurance:"#9B59B6",Software:"#2ECC71",Marketing:"#F5A623",Admin:"#95A5A6",Other:"#7F8C8D"};
+  return m[c]||m.Other;
+}
+function ico(d,s){s=s||16;return'<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>'}
+function sel(id){return document.getElementById(id)}
+
+/* ═══ STATE ═══ */
+var S={
+  tab:"estimator",showSettings:false,
+  billHrs:1000,labMark:52,eqMark:0,labDisp:"distribute",
+  custName:"",custAddr:"",jobDate:new Date().toISOString().split("T")[0],
+  overhead:JSON.parse(JSON.stringify(INIT_OVERHEAD)),
+  catalog:INIT_CATALOG.map(function(s){return Object.assign({},s,{id:uid()})}),
+  selSvc:[],passCosts:[],
+  search:"",lvlFilt:"All",
+  showQA:false,showPA:false,showOHAdd:false,showCatAdd:false,
+  saveStatus:""
+};
+
+/* ═══ PERSISTENCE ═══ */
+function loadConfig(){
+  try{
+    var raw=localStorage.getItem("utp-config");
+    if(raw){
+      var cfg=JSON.parse(raw);
+      if(cfg.overhead)S.overhead=cfg.overhead;
+      if(cfg.catalog)S.catalog=cfg.catalog;
+      if(cfg.billHrs!==undefined)S.billHrs=cfg.billHrs;
+      if(cfg.labMark!==undefined)S.labMark=cfg.labMark;
+      if(cfg.eqMark!==undefined)S.eqMark=cfg.eqMark;
+      if(cfg.labDisp)S.labDisp=cfg.labDisp;
+    }
+  }catch(e){}
+}
+var _saveTimer=null;
+function saveConfig(){
+  clearTimeout(_saveTimer);
+  S.saveStatus="saving";render();
+  _saveTimer=setTimeout(function(){
+    try{
+      localStorage.setItem("utp-config",JSON.stringify({
+        overhead:S.overhead,catalog:S.catalog,billHrs:S.billHrs,
+        labMark:S.labMark,eqMark:S.eqMark,labDisp:S.labDisp,savedAt:new Date().toISOString()
+      }));
+      S.saveStatus="saved";render();
+      setTimeout(function(){S.saveStatus="";render()},2000);
+    }catch(e){S.saveStatus="error";render();setTimeout(function(){S.saveStatus="";render()},3000)}
+  },800);
+}
+
+function exportConfig(){
+  var cfg={version:"3.1",exportedAt:new Date().toISOString(),overhead:S.overhead,catalog:S.catalog,billHrs:S.billHrs,labMark:S.labMark,eqMark:S.eqMark,labDisp:S.labDisp};
+  var json=JSON.stringify(cfg,null,2);var fname="UpToPar_Config_"+new Date().toISOString().split("T")[0]+".json";
+  if(navigator.share){try{var file=new File([json],fname,{type:"application/json"});if(!navigator.canShare||navigator.canShare({files:[file]})){navigator.share({title:"Up to Par Config",files:[file]}).catch(function(){});return}}catch(e){}}
+  var b=new Blob([json],{type:"application/json"});var u=URL.createObjectURL(b);var a=document.createElement("a");a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
+}
+function importConfig(file){
+  var r=new FileReader();
+  r.onload=function(e){
+    try{
+      var cfg=JSON.parse(e.target.result);
+      if(cfg.overhead)S.overhead=cfg.overhead;
+      if(cfg.catalog)S.catalog=cfg.catalog;
+      if(cfg.billHrs!==undefined)S.billHrs=cfg.billHrs;
+      if(cfg.labMark!==undefined)S.labMark=cfg.labMark;
+      if(cfg.eqMark!==undefined)S.eqMark=cfg.eqMark;
+      if(cfg.labDisp)S.labDisp=cfg.labDisp;
+      saveConfig();render();
+    }catch(err){S.saveStatus="error";render()}
+  };r.readAsText(file);
+}
+function resetDefaults(){
+  if(!confirm("Reset all settings, overhead, and catalog to factory defaults? This cannot be undone."))return;
+  S.overhead=JSON.parse(JSON.stringify(INIT_OVERHEAD));
+  S.catalog=INIT_CATALOG.map(function(s){return Object.assign({},s,{id:uid()})});
+  S.billHrs=1000;S.labMark=52;S.eqMark=0;S.labDisp="distribute";
+  try{localStorage.removeItem("utp-config")}catch(e){}
+  render();
+}
+
+/* ═══ DERIVED ═══ */
+function calcTotalOH(){return S.overhead.reduce(function(s,i){return s+(parseFloat(i.annual)||0)},0)}
+function calcBurden(){return S.billHrs>0?calcTotalOH()/S.billHrs:0}
+function calcLabRate(){return calcBurden()*(1+S.labMark/100)}
+function calcPriced(){
+  var b=calcBurden(),lm=S.labMark/100,em=S.eqMark/100;
+  var totMin=S.selSvc.reduce(function(s,v){return s+(parseInt(v.jobTime)||0)},0);
+  var totLabPrice=(totMin/60)*b*(1+lm);
+  return S.selSvc.map(function(svc){
+    var mins=parseInt(svc.jobTime)||0;
+    var ep=(parseFloat(svc.equipCost)||0)*(1+em);
+    var ls=totMin>0?(mins/totMin)*totLabPrice:0;
+    return Object.assign({},svc,{ep:ep,ls:ls,tp:ep+ls});
+  });
+}
+function calcTots(){
+  var p=calcPriced();
+  var lO=p.reduce(function(s,x){return s+x.ls},0);
+  var eO=p.reduce(function(s,x){return s+x.ep},0);
+  var pT=S.passCosts.reduce(function(s,x){return s+(parseFloat(x.cost)||0)},0);
+  return{lO:lO,eO:eO,pT:pT,gT:lO+eO+pT};
+}
+function calcCostBasis(){
+  var p=calcPriced(),b=calcBurden(),t=calcTots();
+  var lc=p.reduce(function(s,x){return s+((parseInt(x.jobTime)||0)/60)*b},0);
+  var ec=p.reduce(function(s,x){return s+(parseFloat(x.equipCost)||0)},0);
+  return lc+ec+t.pT;
+}
+function getFilteredCatalog(){
+  var q=S.search.toLowerCase();
+  return S.catalog.filter(function(s){
+    var ms=!q||s.desc.toLowerCase().indexOf(q)>=0||s.code.toLowerCase().indexOf(q)>=0;
+    var ml=S.lvlFilt==="All"||s.level===S.lvlFilt;
+    return ms&&ml;
+  });
+}
+function getLevels(){var s=new Set();S.catalog.forEach(function(c){s.add(c.level)});return Array.from(s)}
+
+/* ═══ LOGO SVG ═══ */
+function logoHTML(scale){
+  return '<div style="display:flex;flex-direction:column;align-items:center;transform:scale('+(scale||0.7)+');transform-origin:center">'+
+  '<svg width="54" height="46" viewBox="0 0 60 52" fill="none"><defs><linearGradient id="fl" x1="30" y1="48" x2="30" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#E8272C"/><stop offset="45%" stop-color="#E8522C"/><stop offset="75%" stop-color="#F5A623"/><stop offset="100%" stop-color="#F8D34A"/></linearGradient></defs><path d="M30 0C30 0 18 14 18 28C18 32 19.5 35.5 22 38C20 34 21 28 26 22C26 22 27 32 32 38C34 35 36 31 36 28C42 32 42 38 39 42C42 39 44 34 44 28C44 14 30 0 30 0Z" fill="url(#fl)"/><g transform="translate(30,32)" stroke="#4DA6E8" stroke-width="1.8" stroke-linecap="round"><line x1="0" y1="-7" x2="0" y2="7"/><line x1="-6" y1="-3.5" x2="6" y2="3.5"/><line x1="-6" y1="3.5" x2="6" y2="-3.5"/><line x1="0" y1="-7" x2="-2" y2="-5"/><line x1="0" y1="-7" x2="2" y2="-5"/><line x1="0" y1="7" x2="-2" y2="5"/><line x1="0" y1="7" x2="2" y2="5"/></g></svg>'+
+  '<div style="font-family:Oswald,sans-serif;font-weight:800;font-size:18px;color:#fff;letter-spacing:2.5px;margin-top:1px">UP TO PAR</div>'+
+  '<div style="display:flex;align-items:center;gap:5px;margin-top:-2px"><div style="height:1px;width:14px;background:#E8272C"></div><span style="font-family:Oswald,sans-serif;font-weight:600;font-size:9px;letter-spacing:2.5px"><span style="color:#E8272C">HEATING</span><span style="color:#666"> &amp; </span><span style="color:#4DA6E8">AIR</span></span><div style="height:1px;width:14px;background:#4DA6E8"></div></div></div>';
+}
+
+/* ═══ EXPORT ESTIMATE ═══ */
+function exportEstimate(){
+  var t=calcTots(),p=calcPriced();
+  var lines=S.labDisp==="distribute"?p.map(function(x){return{desc:x.desc,price:x.tp,il:false}}):
+    p.map(function(x){return{desc:x.desc,price:x.ep,il:false}}).concat(t.lO>0?[{desc:"Labor",price:t.lO,il:true}]:[]);
+  var rows=lines.map(function(l){return'<tr style="border-bottom:1px solid #eee"><td style="padding:9px 0;font-size:13px;color:'+(l.il?'#555':'#1a1a1a')+';font-style:'+(l.il?'italic':'normal')+'">'+esc(l.desc)+'</td><td style="padding:9px 0;font-size:13px;text-align:right;font-weight:600;color:#1a1a1a">'+fmt(l.price)+'</td></tr>'}).join("");
+  var passRows=S.passCosts.length>0?'<tr><td colspan="2" style="padding:12px 0 5px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#4DA6E8">Additional Costs</td></tr>'+S.passCosts.map(function(pc){return'<tr style="border-bottom:1px solid #eee"><td style="padding:9px 0;font-size:13px">'+esc(pc.desc)+'</td><td style="padding:9px 0;font-size:13px;text-align:right;font-weight:600">'+fmt(pc.cost)+'</td></tr>'}).join(""):"";
+  var cust=(S.custName||S.custAddr)?'<div style="margin-bottom:18px;padding:10px 14px;background:#f8f8f8;border-radius:7px">'+(S.custName?'<div style="font-weight:700;font-size:14px;color:#1a1a1a">'+esc(S.custName)+'</div>':'')+(S.custAddr?'<div style="font-size:12px;color:#555;margin-top:2px">'+esc(S.custAddr)+'</div>':'')+'</div>':"";
+  var html='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Up to Par - Estimate'+(S.custName?' - '+esc(S.custName):'')+'</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Helvetica,Arial,sans-serif;background:#fff;color:#1a1a1a;padding:40px;max-width:700px;margin:0 auto}@media print{body{padding:20px}@page{margin:0.5in}.no-print{display:none!important}}.print-btn{display:block;margin:0 auto 30px;padding:12px 32px;background:#4DA6E8;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer}.print-btn:hover{background:#3B8BC4}</style></head><body>'+
+  '<button class="print-btn no-print" onclick="window.print()">Print / Save as PDF</button>'+
+  '<div id="share-mount"></div><script>if(navigator.share){var _s=document.createElement("button");_s.className="print-btn no-print";_s.style.background="#2ECC71";_s.textContent="Share / Email";_s.onclick=function(){var h="<!DOCTYPE html>"+document.documentElement.outerHTML;var f=new File([h],"estimate.html",{type:"text/html"});navigator.share({title:document.title,files:[f]}).catch(function(){})};document.getElementById("share-mount").appendChild(_s)}<\/script>'+
+  '<div style="border-bottom:2px solid #E8272C;padding-bottom:18px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:26px;font-weight:800;color:#1a1a1a;letter-spacing:1px">UP TO PAR</div><div style="font-size:11px;letter-spacing:3px"><span style="color:#E8272C">HEATING</span><span style="color:#999"> &amp; </span><span style="color:#4DA6E8">AIR</span></div></div><div style="text-align:right;font-size:12px;color:#555"><div style="font-weight:700;color:#1a1a1a;font-size:15px">Service Estimate</div><div>'+esc(S.jobDate)+'</div></div></div>'+
+  cust+
+  '<table style="width:100%;border-collapse:collapse;margin-bottom:18px"><thead><tr style="border-bottom:2px solid #4DA6E8"><th style="text-align:left;padding:7px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1a1a1a">Service</th><th style="text-align:right;padding:7px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1a1a1a">Price</th></tr></thead><tbody>'+rows+passRows+'</tbody></table>'+
+  '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#1a1a1a;border-radius:7px"><span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:1px">TOTAL</span><span style="font-size:22px;font-weight:700;color:#4DA6E8">'+fmt(t.gT)+'</span></div>'+
+  '<div style="margin-top:20px;text-align:center;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:12px">Up to Par Heating &amp; Air · Greater Cincinnati, Northern Kentucky &amp; Southeast Indiana</div></body></html>';
+  var fname="UpToPar_Estimate"+(S.custName?"_"+S.custName.replace(/\s+/g,"_"):"")+(S.jobDate?"_"+S.jobDate:"")+".html";
+  if(navigator.share){try{var file=new File([html],fname,{type:"text/html"});if(!navigator.canShare||navigator.canShare({files:[file]})){navigator.share({title:"Estimate"+(S.custName?" — "+S.custName:""),files:[file]}).catch(function(){});return}}catch(e){}}
+  var w=window.open("","_blank");if(w){w.document.write(html);w.document.close();return}
+  var b=new Blob([html],{type:"text/html"});var u=URL.createObjectURL(b);var a=document.createElement("a");a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
+}
+
+/* ═══ RENDER ═══ */
+function render(){
+  var app=sel("app");
+  var totalOH=calcTotalOH(),burden=calcBurden(),labRate=calcLabRate();
+  var priced=calcPriced(),tots=calcTots(),costBasis=calcCostBasis();
+  var filtered=getFilteredCatalog(),levels=getLevels();
+  var statusDot=S.saveStatus?'<span class="save-dot" style="background:'+(S.saveStatus==="saved"?"#2ECC71":S.saveStatus==="saving"?"#F5A623":"#E8272C")+'"></span><span style="font-size:9px;color:#555">'+(S.saveStatus==="saving"?"saving":S.saveStatus==="saved"?"synced":"error")+'</span>':"";
+
+  var h='<div class="hdr"><div style="display:flex;align-items:center;gap:10px">'+logoHTML(0.6)+statusDot+'</div><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">';
+  [{k:"estimator",l:"Estimator"},{k:"customer",l:"Customer"},{k:"catalog",l:"Catalog"}].forEach(function(t){
+    h+='<button class="tab-btn'+(S.tab===t.k?" active":"")+'" onclick="S.tab=\''+t.k+'\';render()">'+t.l+'</button>';
+  });
+  h+='<button class="tab-btn" style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;padding:0;margin-left:2px" onclick="S.showSettings=true;render()">'+ico("M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2zM12 8a4 4 0 100 8 4 4 0 000-8z")+'</button>';
+  h+='</div></div>';
+  h+='<div class="main">';
+
+  /* ═══ ESTIMATOR ═══ */
+  if(S.tab==="estimator"){
+    h+='<div class="est-grid"><div class="card">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div class="osw" style="font-size:15px;font-weight:700">Service Catalog</div><span style="font-size:11px;color:#555">'+S.catalog.length+'</span></div>';
+    h+='<div style="display:flex;gap:5px;margin-bottom:8px"><input class="inp" style="flex:1" placeholder="Search..." value="'+esc(S.search)+'" oninput="S.search=this.value;render()"/>';
+    h+='<select class="inp" style="width:auto;min-width:65px" onchange="S.lvlFilt=this.value;render()"><option value="All"'+(S.lvlFilt==="All"?" selected":"")+'>All</option>';
+    levels.forEach(function(l){h+='<option value="'+l+'"'+(S.lvlFilt===l?" selected":"")+'>'+l+'</option>'});
+    h+='</select></div>';
+    h+='<div style="max-height:500px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:2px">';
+    filtered.forEach(function(s){
+      h+='<button class="svc-btn" onclick="S.selSvc.push(Object.assign({},S.catalog.find(function(c){return c.id===\''+s.id+'\'}),{jobId:uid(),equipCost:0,jobTime:'+s.primary+'}));render()"><span class="lvl" style="background:'+levelColor(s.level)+'">'+s.level+'</span><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(s.desc)+'</div><div style="font-size:9px;color:#555">'+esc(s.code)+' · '+s.primary+'min</div></div><span style="color:#4DA6E8;flex-shrink:0">'+ico("M12 5v14M5 12h14")+'</span></button>';
+    });
+    h+='</div></div>';
+
+    /* Right column */
+    h+='<div style="display:flex;flex-direction:column;gap:12px">';
+    /* Selected */
+    h+='<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="osw" style="font-size:15px;font-weight:700">Selected <span style="font-size:11px;background:rgba(77,166,232,0.15);color:#4DA6E8;padding:1px 7px;border-radius:10px;margin-left:6px;font-family:Source Sans Pro,sans-serif">'+S.selSvc.length+'</span></div>';
+    h+='<div style="display:flex;gap:5px"><button class="btn btn-gold" onclick="S.showQA=!S.showQA;render()">+ Quick Add</button>';
+    if(S.selSvc.length>0)h+='<button class="btn btn-ghost" onclick="S.selSvc=[];render()">Clear</button>';
+    h+='</div></div>';
+    if(S.showQA){
+      h+='<div style="background:#0a0a0a;border:1px solid rgba(245,166,35,0.25);border-radius:7px;padding:10px;margin-bottom:8px"><div style="display:grid;grid-template-columns:1fr 72px 60px;gap:6px;align-items:end"><div><label style="font-size:9px;color:#888">Description</label><input class="inp" id="qa-desc"/></div><div><label style="font-size:9px;color:#888">Equip $</label><input class="inp" type="number" inputmode="decimal" id="qa-eq"/></div><div><label style="font-size:9px;color:#888">Mins</label><input class="inp" type="number" inputmode="decimal" id="qa-pri" value="30"/></div></div><button class="btn btn-gold" style="margin-top:6px;width:100%" onclick="var d=sel(\'qa-desc\').value,e=sel(\'qa-eq\').value,p=sel(\'qa-pri\').value;if(!d)return;S.selSvc.push({jobId:uid(),level:\'Custom\',desc:d,code:\'CUSTOM\',primary:parseInt(p)||30,jobTime:parseInt(p)||30,equipCost:parseFloat(e)||0});S.showQA=false;render()">Add to Job</button></div>';
+    }
+    if(S.selSvc.length===0){
+      h+='<div style="text-align:center;padding:24px 8px;color:#555;font-size:12px">Click services to build your estimate</div>';
+    }else{
+      h+='<div style="max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch">';
+      S.selSvc.forEach(function(s,i){
+        h+='<div class="sel-row"><span class="lvl" style="background:'+levelColor(s.level)+';font-size:7px;padding:1px 4px;min-width:30px">'+s.level+'</span><span style="flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(s.desc)+'</span>';
+        h+='<input class="mini-inp-gold" type="number" inputmode="decimal" placeholder="Eq$" value="'+(s.equipCost||"")+'" onchange="S.selSvc['+i+'].equipCost=this.value;render()"/>';
+        h+='<input class="mini-inp" type="number" inputmode="decimal" value="'+s.jobTime+'" onchange="S.selSvc['+i+'].jobTime=this.value;render()"/><span style="font-size:9px;color:#555">m</span>';
+        h+='<button class="icon-btn" style="color:#883333" onclick="S.selSvc.splice('+i+',1);render()">'+ico("M18 6L6 18M6 6l12 12",12)+'</button></div>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
+
+    /* Pass-through */
+    h+='<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="osw" style="font-size:13px;font-weight:700">Additional Costs <span style="font-size:10px;color:#555;font-family:Source Sans Pro,sans-serif">(pass-through)</span></div><button class="btn" style="background:rgba(77,166,232,0.19);color:#4DA6E8" onclick="S.showPA=!S.showPA;render()">+ Add</button></div>';
+    if(S.showPA){
+      h+='<div style="display:flex;gap:5px;margin-bottom:6px"><input class="inp" style="flex:1" placeholder="e.g. Crane Rental" id="pa-desc"/><input class="inp" type="number" inputmode="decimal" style="width:80px" placeholder="$" id="pa-cost"/><button class="btn btn-blue" onclick="var d=sel(\'pa-desc\').value,c=sel(\'pa-cost\').value;if(!d||!c)return;S.passCosts.push({id:uid(),desc:d,cost:parseFloat(c)||0});S.showPA=false;render()">Add</button></div>';
+    }
+    if(S.passCosts.length===0){
+      h+='<div style="font-size:11px;color:#555;padding:8px 0;text-align:center">No additional costs</div>';
+    }else{
+      S.passCosts.forEach(function(p,i){
+        h+='<div class="sel-row"><span class="lvl" style="background:#4DA6E8;font-size:7px;padding:1px 4px;min-width:30px">PASS</span><span style="flex:1;font-size:11px">'+esc(p.desc)+'</span><span style="font-size:11px;color:#4DA6E8;font-weight:600">'+fmt(p.cost)+'</span><button class="icon-btn" style="color:#883333" onclick="S.passCosts.splice('+i+',1);render()">'+ico("M18 6L6 18M6 6l12 12",12)+'</button></div>';
+      });
+    }
+    h+='</div>';
+
+    /* Job Summary */
+    if(S.selSvc.length>0||S.passCosts.length>0){
+      h+='<div class="summary-box"><div class="osw" style="font-size:13px;font-weight:700;color:#4DA6E8;margin-bottom:8px">Job Summary</div>';
+      h+='<div class="grid3">';
+      [{l:"Labor",v:fmt(tots.lO)},{l:"Equipment",v:fmt(tots.eO)},{l:"Pass-through",v:fmt(tots.pT)}].forEach(function(m){
+        h+='<div style="background:#0a0a0a;border-radius:5px;padding:5px 8px"><div style="font-size:9px;color:#555;text-transform:uppercase">'+m.l+'</div><div style="font-size:13px;font-weight:700">'+m.v+'</div></div>';
+      });
+      h+='</div>';
+      h+='<div class="total-bar"><span class="osw" style="font-size:14px">Total Job Price</span><span class="osw" style="font-size:20px;font-weight:700;color:#4DA6E8">'+fmt(tots.gT)+'</span></div>';
+      h+='<div style="text-align:center;margin-top:4px"><span style="font-size:10px;color:#F5A623;font-weight:600">Margin: '+(tots.gT>0?fmtPct((tots.gT-costBasis)/tots.gT):"0.0%")+'</span></div>';
+      h+='</div>';
+    }
+    h+='</div></div>';
+  }
+
+  /* ═══ CUSTOMER VIEW ═══ */
+  if(S.tab==="customer"){
+    var lines=S.labDisp==="distribute"?calcPriced().map(function(p){return{desc:p.desc,price:p.tp,il:false}}):
+      calcPriced().map(function(p){return{desc:p.desc,price:p.ep,il:false}}).concat(tots.lO>0?[{desc:"Labor",price:tots.lO,il:true}]:[]);
+    h+='<div style="max-width:680px;margin:0 auto"><div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-blue" onclick="exportEstimate()">'+ico("M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",14)+(navigator.share?" Share Estimate":" Export Estimate")+'</button></div>';
+    h+='<div class="cv-wrap">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;border-bottom:2px solid #E8272C;padding-bottom:18px"><div><div style="font-family:Oswald,sans-serif;font-size:26px;font-weight:800;color:#1a1a1a;letter-spacing:1px">UP TO PAR</div><div style="font-family:Oswald,sans-serif;font-size:11px;letter-spacing:3px"><span style="color:#E8272C">HEATING</span><span style="color:#999"> &amp; </span><span style="color:#4DA6E8">AIR</span></div></div><div style="text-align:right;font-size:12px;color:#555"><div style="font-weight:700;color:#1a1a1a;font-size:15px">Service Estimate</div><div>'+esc(S.jobDate)+'</div></div></div>';
+    if(S.custName||S.custAddr)h+='<div style="margin-bottom:18px;padding:10px 14px;background:#f8f8f8;border-radius:7px">'+(S.custName?'<div style="font-weight:700;font-size:14px;color:#1a1a1a">'+esc(S.custName)+'</div>':'')+(S.custAddr?'<div style="font-size:12px;color:#555;margin-top:2px">'+esc(S.custAddr)+'</div>':'')+'</div>';
+    h+='<table><thead><tr style="border-bottom:2px solid #4DA6E8"><th>Service</th><th style="text-align:right">Price</th></tr></thead><tbody>';
+    lines.forEach(function(l){
+      h+='<tr><td style="color:'+(l.il?'#555':'#1a1a1a')+';font-style:'+(l.il?'italic':'normal')+'">'+esc(l.desc)+'</td><td style="text-align:right;font-weight:600;color:#1a1a1a">'+fmt(l.price)+'</td></tr>';
+    });
+    if(S.passCosts.length>0){
+      h+='<tr><td colspan="2" style="padding:12px 0 5px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#4DA6E8;border:none">Additional Costs</td></tr>';
+      S.passCosts.forEach(function(p){h+='<tr><td>'+esc(p.desc)+'</td><td style="text-align:right;font-weight:600">'+fmt(p.cost)+'</td></tr>'});
+    }
+    h+='</tbody></table>';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#1a1a1a;border-radius:7px"><span style="font-family:Oswald,sans-serif;font-size:15px;font-weight:700;color:#fff;letter-spacing:1px">TOTAL</span><span style="font-family:Oswald,sans-serif;font-size:22px;font-weight:700;color:#4DA6E8">'+fmt(tots.gT)+'</span></div>';
+    h+='<div style="margin-top:20px;text-align:center;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:12px">Up to Par Heating &amp; Air · Greater Cincinnati, Northern Kentucky &amp; Southeast Indiana</div>';
+    h+='</div></div>';
+  }
+
+  /* ═══ CATALOG ═══ */
+  if(S.tab==="catalog"){
+    h+='<div class="card" style="max-width:820px;margin:0 auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="osw" style="font-size:17px;font-weight:700">Catalog Manager</div><button class="btn btn-blue" onclick="S.showCatAdd=!S.showCatAdd;render()">+ Add Service</button></div>';
+    if(S.showCatAdd){
+      h+='<div style="background:#0a0a0a;border:1px solid rgba(77,166,232,0.25);border-radius:7px;padding:12px;margin-bottom:10px"><div style="display:grid;grid-template-columns:75px 1fr 90px 60px;gap:6px;align-items:end"><div><label style="font-size:9px;color:#888">Level</label><select class="inp" id="nc-lv">';
+      SL_LIST.forEach(function(l){h+='<option>'+l+'</option>'});
+      h+='</select></div><div><label style="font-size:9px;color:#888">Description</label><input class="inp" id="nc-desc"/></div><div><label style="font-size:9px;color:#888">Code</label><input class="inp" id="nc-code"/></div><div><label style="font-size:9px;color:#888">Minutes</label><input class="inp" type="number" inputmode="decimal" id="nc-pri" value="55"/></div></div><button class="btn btn-blue" style="margin-top:6px;width:100%" onclick="var d=sel(\'nc-desc\').value;if(!d)return;S.catalog.push({id:uid(),level:sel(\'nc-lv\').value,desc:d,code:sel(\'nc-code\').value,primary:parseInt(sel(\'nc-pri\').value)||0});S.showCatAdd=false;saveConfig();render()">Save to Catalog</button></div>';
+    }
+    h+='<div style="max-height:480px;overflow-y:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;border-collapse:collapse"><thead><tr style="border-bottom:2px solid #E8272C"><th style="text-align:left;padding:5px 7px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888">Level</th><th style="text-align:left;padding:5px 7px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888">Description</th><th style="text-align:left;padding:5px 7px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888">Code</th><th style="text-align:left;padding:5px 7px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888">Time</th><th></th></tr></thead><tbody>';
+    S.catalog.forEach(function(s,i){
+      h+='<tr style="border-bottom:1px solid #252525"><td style="padding:5px 7px"><span class="lvl" style="background:'+levelColor(s.level)+';font-size:7px;padding:1px 4px">'+s.level+'</span></td><td style="padding:5px 7px;font-size:11px">'+esc(s.desc)+'</td><td style="padding:5px 7px;font-size:10px;color:#555">'+esc(s.code)+'</td><td style="padding:5px 7px;font-size:11px">'+s.primary+'m</td><td style="padding:5px 7px"><button class="icon-btn" style="color:#883333" onclick="S.catalog.splice('+i+',1);saveConfig();render()">'+ico("M18 6L6 18M6 6l12 12",12)+'</button></td></tr>';
+    });
+    h+='</tbody></table></div></div>';
+  }
+
+  h+='</div>';
+
+  /* ═══ SETTINGS MODAL ═══ */
+  if(S.showSettings){
+    var ohByCat={};S.overhead.forEach(function(o){if(!ohByCat[o.cat])ohByCat[o.cat]=[];ohByCat[o.cat].push(o)});
+    h+='<div class="modal-bg" onclick="S.showSettings=false;render()"><div class="modal" onclick="event.stopPropagation()">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h2 class="osw" style="font-size:20px;font-weight:700">Settings</h2><button class="icon-btn" style="color:#888" onclick="S.showSettings=false;render()">'+ico("M18 6L6 18M6 6l12 12",18)+'</button></div>';
+
+    h+='<div class="sect">Rate Assumptions</div>';
+    h+='<div class="grid3" style="margin-bottom:10px"><div><label style="font-size:10px;color:#888;display:block;margin-bottom:3px">Goal Hrs/Yr</label><input class="inp" type="number" inputmode="decimal" value="'+S.billHrs+'" onchange="S.billHrs=parseFloat(this.value)||0;saveConfig();render()"/></div><div><label style="font-size:10px;color:#888;display:block;margin-bottom:3px">Labor Markup %</label><input class="inp" type="number" inputmode="decimal" value="'+S.labMark+'" onchange="S.labMark=parseFloat(this.value)||0;saveConfig();render()"/></div><div><label style="font-size:10px;color:#888;display:block;margin-bottom:3px">Equip Markup %</label><input class="inp" type="number" inputmode="decimal" value="'+S.eqMark+'" onchange="S.eqMark=parseFloat(this.value)||0;saveConfig();render()"/></div></div>';
+    h+='<div class="grid3" style="margin-bottom:16px">';
+    [{l:"Overhead",v:fmt(totalOH)},{l:"Burden Rate",v:fmt(burden)+"/hr"},{l:"Bill Rate",v:fmt(labRate)+"/hr"}].forEach(function(m){
+      h+='<div class="rate-box"><div class="lbl">'+m.l+'</div><div class="val">'+m.v+'</div></div>';
+    });
+    h+='</div>';
+
+    h+='<div class="sect">Customer View — Labor</div>';
+    h+='<div style="display:flex;gap:6px;margin-bottom:16px">';
+    [{k:"distribute",l:"Distribute into line items",s:"Baked into each service price"},{k:"lineitem",l:"Separate line item",s:"Labor as its own row"}].forEach(function(o){
+      var act=S.labDisp===o.k;
+      h+='<button style="flex:1;padding:10px 12px;border-radius:7px;cursor:pointer;text-align:left;background:'+(act?'rgba(77,166,232,0.09)':'#0a0a0a')+';border:1.5px solid '+(act?'#4DA6E8':'#252525')+'" onclick="S.labDisp=\''+o.k+'\';saveConfig();render()"><div style="font-size:12px;font-weight:600;color:'+(act?'#fff':'#888')+'">'+o.l+'</div><div style="font-size:10px;color:#555;margin-top:2px">'+o.s+'</div></button>';
+    });
+    h+='</div>';
+
+    h+='<div class="sect">Customer Info</div>';
+    h+='<div class="grid2" style="margin-bottom:4px"><div><label style="font-size:10px;color:#888">Name</label><input class="inp" value="'+esc(S.custName)+'" oninput="S.custName=this.value" placeholder="John Smith"/></div><div><label style="font-size:10px;color:#888">Date</label><input class="inp" type="date" value="'+S.jobDate+'" onchange="S.jobDate=this.value"/></div></div>';
+    h+='<div style="margin-bottom:16px"><label style="font-size:10px;color:#888">Address</label><input class="inp" value="'+esc(S.custAddr)+'" oninput="S.custAddr=this.value" placeholder="123 Main St"/></div>';
+
+    h+='<div class="sect">Overhead Cost Manager</div>';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:13px;color:#ccc;font-weight:600">Annual Total: <span style="color:#F5A623">'+fmt(totalOH)+'</span></span><button class="btn btn-blue" onclick="S.showOHAdd=!S.showOHAdd;render()">+ Add Item</button></div>';
+    if(S.showOHAdd){
+      h+='<div style="background:#0a0a0a;border:1px solid rgba(77,166,232,0.25);border-radius:7px;padding:10px;margin-bottom:10px"><div style="display:grid;grid-template-columns:1fr 90px 90px;gap:6px;align-items:end"><div><label style="font-size:9px;color:#888">Name</label><input class="inp" id="oh-name"/></div><div><label style="font-size:9px;color:#888">Annual $</label><input class="inp" type="number" inputmode="decimal" id="oh-cost"/></div><div><label style="font-size:9px;color:#888">Category</label><select class="inp" id="oh-cat">';
+      CATS.forEach(function(c){h+='<option>'+c+'</option>'});
+      h+='</select></div></div><button class="btn btn-blue" style="margin-top:6px;width:100%" onclick="var n=sel(\'oh-name\').value,c=sel(\'oh-cost\').value;if(!n||!c)return;S.overhead.push({id:uid(),name:n,annual:parseFloat(c)||0,cat:sel(\'oh-cat\').value});S.showOHAdd=false;saveConfig();render()">Add to Overhead</button></div>';
+    }
+    h+='<div style="max-height:250px;overflow-y:auto;-webkit-overflow-scrolling:touch">';
+    Object.keys(ohByCat).sort().forEach(function(cat){
+      var items=ohByCat[cat];var sub=items.reduce(function(s,i){return s+(parseFloat(i.annual)||0)},0);
+      h+='<div style="margin-bottom:8px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="cat-badge" style="background:'+catColor(cat)+'">'+cat+'</span><span style="font-size:10px;color:#555">'+fmt(sub)+'</span></div>';
+      items.forEach(function(o,oi){
+        var idx=S.overhead.indexOf(o);
+        h+='<div class="oh-row"><span style="flex:1;font-size:11px;color:#ccc">'+esc(o.name)+'</span><span style="font-size:11px;color:#F5A623;font-weight:600;min-width:70px;text-align:right">'+fmt(o.annual)+'</span><button class="icon-btn" style="color:#883333" onclick="S.overhead.splice('+idx+',1);saveConfig();render()">'+ico("M18 6L6 18M6 6l12 12",11)+'</button></div>';
+      });
+      h+='</div>';
+    });
+    h+='</div>';
+
+    h+='<div class="sect" style="margin-top:16px">Data Management</div>';
+    h+='<div style="background:#0a0a0a;border-radius:7px;padding:12px"><div style="display:flex;align-items:center;gap:4px;margin-bottom:8px"><span class="save-dot" style="background:'+(S.saveStatus==="saved"?"#2ECC71":S.saveStatus==="saving"?"#F5A623":S.saveStatus==="error"?"#E8272C":"#555")+'"></span><span style="font-size:10px;color:#888">'+(S.saveStatus==="saving"?"Saving...":S.saveStatus==="saved"?"Synced":S.saveStatus==="error"?"Sync error":"Auto-sync active")+'</span></div>';
+    h+='<div style="font-size:10px;color:#555;margin-bottom:10px">Settings auto-save to this device. Use export/import to move between devices or back up.</div>';
+    h+='<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-blue" onclick="exportConfig()">'+ico("M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3",12)+' Export Config</button>';
+    h+='<label class="btn" style="background:rgba(77,166,232,0.19);color:#4DA6E8;cursor:pointer">'+ico("M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12",12)+' Import Config<input type="file" accept=".json" style="display:none" onchange="if(this.files[0])importConfig(this.files[0])"/></label>';
+    h+='<button class="btn btn-red-ghost" onclick="resetDefaults()">'+ico("M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6",12)+' Reset</button>';
+    h+='</div></div>';
+
+    h+='</div></div>';
+  }
+
+  app.innerHTML=h;
+}
+
+/* ═══ PWA MANIFEST + ICON ═══ */
+(function(){
+  var m={name:"Up to Par Price Estimator",short_name:"Up to Par",start_url:".",display:"standalone",background_color:"#0a0a0a",theme_color:"#0a0a0a",orientation:"portrait"};
+  var b=new Blob([JSON.stringify(m)],{type:"application/json"});
+  var ml=document.createElement("link");ml.rel="manifest";ml.href=URL.createObjectURL(b);document.head.appendChild(ml);
+  var c=document.createElement("canvas");c.width=180;c.height=180;var g=c.getContext("2d");
+  g.fillStyle="#0a0a0a";g.fillRect(0,0,180,180);
+  g.fillStyle="#E8272C";g.beginPath();g.moveTo(90,20);g.bezierCurveTo(90,20,60,55,60,90);g.bezierCurveTo(60,105,68,115,78,120);g.bezierCurveTo(72,108,74,90,84,72);g.bezierCurveTo(84,72,86,100,98,120);g.bezierCurveTo(106,112,112,102,112,90);g.bezierCurveTo(112,55,90,20,90,20);g.fill();
+  var grd=g.createLinearGradient(90,70,90,130);grd.addColorStop(0,"#F8D34A");grd.addColorStop(0.5,"#F5A623");grd.addColorStop(1,"#E8272C");
+  g.fillStyle=grd;g.beginPath();g.moveTo(90,30);g.bezierCurveTo(90,30,65,60,65,88);g.bezierCurveTo(65,100,70,110,80,116);g.bezierCurveTo(75,106,76,92,85,76);g.bezierCurveTo(85,76,87,98,96,116);g.bezierCurveTo(104,108,108,98,108,88);g.bezierCurveTo(108,60,90,30,90,30);g.fill();
+  g.strokeStyle="#4DA6E8";g.lineWidth=3;g.lineCap="round";
+  g.beginPath();g.moveTo(90,85);g.lineTo(90,115);g.stroke();
+  g.beginPath();g.moveTo(80,90);g.lineTo(100,110);g.stroke();
+  g.beginPath();g.moveTo(100,90);g.lineTo(80,110);g.stroke();
+  g.fillStyle="#fff";g.font="bold 22px sans-serif";g.textAlign="center";g.fillText("UP TO PAR",90,158);
+  var il=document.createElement("link");il.rel="apple-touch-icon";il.href=c.toDataURL("image/png");document.head.appendChild(il);
+})();
+
+/* ═══ INIT ═══ */
+loadConfig();
+render();
+</script>
+</body>
+</html>
